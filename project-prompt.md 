@@ -1,0 +1,122 @@
+# Claude Code Prompt for AI Writing Assistant Project
+
+I need you to plan and build an AI Writing Assistant application with the following requirements:
+
+## Project Overview
+Create a web application that learns a user's writing style from their uploaded papers and helps them write new content in their authentic voice. The app should have a Word-like editor where users can highlight text and ask AI questions to get style-consistent revisions.
+
+## Core Features Required
+
+### 1. Style Learning System
+- Users upload 5-10 sample papers (PDF/DOCX)
+- AI analyzes and extracts writing style patterns (tone, vocabulary, sentence structure, etc.)
+- Store style profiles in database linked to user accounts
+
+### 2. Document Generation
+- Users input a topic/prompt
+- AI generates initial draft using their learned writing style
+- Content opens in rich text editor
+
+### 3. Interactive Editing (Key Feature)
+- Rich text editor with text selection capabilities
+- When users highlight text, show AI query interface
+- Users can ask natural language questions like:
+  - "Make this argument stronger"
+  - "This transition feels awkward"
+  - "Add more evidence here"
+- AI provides revisions that maintain the user's writing style
+- Users can accept/reject suggestions
+
+## Tech Stack Requirements
+- **Frontend**: Next.js with React
+- **Rich Text Editor**: Lexical (Facebook's editor)
+- **Authentication**: Clerk
+- **Database**: Supabase
+- **AI Integration**: OpenAI API or Claude API
+- **MCP Server**: For real-time AI assistance during editing
+- **Styling**: Tailwind CSS
+
+## Key Implementation Details
+
+### Database Schema (Supabase)
+```sql
+-- Users linked via Clerk
+user_profiles: id, clerk_user_id, style_data (JSONB), created_at
+user_documents: id, clerk_user_id, title, content, document_type, created_at
+```
+
+### MCP Tools Needed
+- `revise_text_in_style(text, query, userId)` - Main editing function
+- `analyze_writing_style(documents)` - Extract style from uploads
+- `generate_content(topic, styleProfile)` - Create new documents
+
+### Editor Features
+- Text selection detection
+- Floating AI query box on selection
+- Revision preview with accept/reject options
+- Real-time collaboration capabilities
+- Document save/load functionality
+
+## Project Structure I Want
+```
+ai-writing-assistant/
+├── README.md
+├── claude.md (project context file)
+├── next.config.js
+├── package.json
+├── components/
+│   ├── editor/
+│   │   ├── DocumentEditor.tsx
+│   │   ├── AIQueryPlugin.tsx
+│   │   ├── RevisionDialog.tsx
+│   │   └── ToolbarPlugin.tsx
+│   ├── upload/
+│   │   └── StyleAnalysisUpload.tsx
+│   └── auth/
+├── pages/api/
+│   ├── ai/
+│   │   ├── analyze-style.ts
+│   │   ├── generate-content.ts
+│   │   └── revise-text.ts
+│   └── documents/
+├── lib/
+│   ├── supabase.ts
+│   ├── openai.ts
+│   └── mcp-server.ts
+├── types/
+│   └── index.ts
+└── styles/
+```
+
+## What I Need You To Do
+
+**Phase 1: Planning**
+1. Break down this project into logical development phases
+2. Identify all the components, API routes, and database operations needed
+3. Plan the implementation order to build an MVP efficiently
+4. Consider any technical challenges and how to solve them
+
+**Phase 2: Implementation**
+1. Set up the Next.js project with all required dependencies
+2. Configure Clerk authentication and Supabase database
+3. Build the document upload and style analysis system
+4. Create the Lexical-based rich text editor with text selection
+5. Implement the AI query interface and MCP server integration
+6. Add document generation and management features
+7. Style everything with Tailwind CSS
+
+**Key Requirements:**
+- Focus on the text selection + AI query feature as the core value proposition
+- Ensure all AI responses maintain the user's writing style
+- Make the UX feel seamless and Word-like
+- Handle file uploads (PDF/DOCX) for style analysis
+- Implement proper error handling and loading states
+- Add basic responsive design
+
+**Important Notes:**
+- Store style profiles as JSONB in Supabase for flexibility
+- Use Clerk's userId to link all user data
+- MCP server should handle real-time AI interactions during editing
+- Prioritize a working MVP over complex features initially
+
+Please plan out the development phases first, then start building the application step by step. Ask me questions if anything is unclear about the requirements!
