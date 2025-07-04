@@ -27,7 +27,17 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({ userId }) => {
       }
       
       const data = await response.json();
-      setDocuments(data);
+      // Map database fields (snake_case) to frontend types (camelCase)
+      const mappedDocuments = (data.documents || []).map((doc: any) => ({
+        id: doc.id,
+        userId: doc.clerk_user_id,
+        title: doc.title,
+        content: doc.content,
+        documentType: doc.document_type,
+        createdAt: doc.created_at,
+        updatedAt: doc.updated_at
+      }));
+      setDocuments(mappedDocuments);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

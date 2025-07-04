@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase';
+import { createServerClient } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +14,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = createServerClient();
     const { data: document, error } = await supabase
       .from('user_documents')
       .select('*')
@@ -55,7 +55,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = createServerClient();
     
     // Build update object with only provided fields
     const updateData: {
@@ -102,7 +102,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = createServerClient();
     const { error } = await supabase
       .from('user_documents')
       .delete()

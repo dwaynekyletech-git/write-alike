@@ -1,61 +1,67 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback } from 'react';
 import { CleanAIEditor } from '@/components/editor/CleanAIEditor';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 
-export default function NewDocumentPage() {
-  const router = useRouter();
-  const { addToast } = useToast();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [documentId, setDocumentId] = useState<string | null>(null);
+interface Document {
+  id: string;
+  userId: string;
+  title: string;
+  content: string;
+  documentType: 'sample' | 'generated' | 'draft';
+  createdAt: string;
+  updatedAt: string;
+}
 
-  // Auto-save functionality
+interface DocumentEditViewProps {
+  document: Document;
+  onBack: () => void;
+  onUpdate: (document: Document) => void;
+  onDelete: () => void;
+}
+
+export function DocumentEditView({ document, onBack, onUpdate, onDelete }: DocumentEditViewProps) {
+  const { addToast } = useToast();
+  const [title, setTitle] = useState(document.title);
+  const [content, setContent] = useState(document.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date>(new Date(document.updatedAt));
+
+  // Save document
   const saveDocument = useCallback(async (isManual = false) => {
     if (!title.trim() && !content.trim()) return;
 
     setIsSaving(true);
     try {
-      let response;
-      
-      if (documentId) {
-        // Update existing document
-        response = await fetch(`/api/documents/${documentId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: title || 'Untitled Document',
-            content,
-          }),
-        });
-      } else {
-        // Create new document
-        response = await fetch('/api/documents', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: title || 'Untitled Document',
-            content,
-            documentType: 'draft',
-          }),
-        });
-      }
+      const response = await fetch(`/api/documents/${document.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: title || 'Untitled Document',
+          content,
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
-        if (!documentId) {
-          setDocumentId(data.document.id);
-        }
+        
+        // Map the updated document
+        const updatedDocument: Document = {
+          id: data.document.id,
+          userId: data.document.clerk_user_id,
+          title: data.document.title,
+          content: data.document.content,
+          documentType: data.document.document_type,
+          createdAt: data.document.created_at,
+          updatedAt: data.document.updated_at
+        };
+
         setLastSaved(new Date());
+        onUpdate(updatedDocument);
         
         if (isManual) {
           addToast('Document saved successfully!', 'success');
@@ -71,34 +77,35 @@ export default function NewDocumentPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [title, content, documentId]);
-
-  // Auto-save every 30 seconds when there are changes
-  useEffect(() => {
-    if (title.trim() || content.trim()) {
-      const autoSaveTimer = setTimeout(() => {
-        saveDocument();
-      }, 30000);
-
-      return () => clearTimeout(autoSaveTimer);
-    }
-  }, [title, content, saveDocument]);
+  }, [title, content, document.id, onUpdate, addToast]);
 
   const handleManualSave = () => {
     saveDocument(true);
   };
 
-  const handleClose = () => {
-    if (title.trim() || content.trim()) {
-      if (confirm('You have unsaved changes. Do you want to save before leaving?')) {
-        saveDocument(true).then(() => {
-          router.push('/dashboard');
-        });
-      } else {
-        router.push('/dashboard');
-      }
-    } else {
-      router.push('/dashboard');
+  const getDocumentTypeLabel = (type: string) => {
+    switch (type) {
+      case 'draft':
+        return 'Draft';
+      case 'generated':
+        return 'AI Generated';
+      case 'sample':
+        return 'Writing Sample';
+      default:
+        return type;
+    }
+  };
+
+  const getDocumentTypeColor = (type: string) => {
+    switch (type) {
+      case 'draft':
+        return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'generated':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case 'sample':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -121,7 +128,7 @@ export default function NewDocumentPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1">
             <Button
-              onClick={handleClose}
+              onClick={onBack}
               variant="secondary"
               className="text-gray-600"
             >
@@ -142,14 +149,16 @@ export default function NewDocumentPage() {
                 direction: 'ltr'
               }}
             />
+
+            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getDocumentTypeColor(document.documentType)}`}>
+              {getDocumentTypeLabel(document.documentType)}
+            </span>
           </div>
 
           <div className="flex items-center space-x-4">
-            {lastSaved && (
-              <span className="text-sm text-gray-500">
-                Saved {formatLastSaved(lastSaved)}
-              </span>
-            )}
+            <span className="text-sm text-gray-500">
+              Saved {formatLastSaved(lastSaved)}
+            </span>
             
             <Button
               onClick={handleManualSave}
@@ -157,6 +166,14 @@ export default function NewDocumentPage() {
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+
+            <Button
+              onClick={onDelete}
+              variant="secondary"
+              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+            >
+              Delete
             </Button>
           </div>
         </div>
@@ -166,7 +183,8 @@ export default function NewDocumentPage() {
       <div className="flex-1 overflow-hidden">
         <div className="h-full max-w-4xl mx-auto py-6 px-6">
           <CleanAIEditor
-            placeholder="Start writing your document..."
+            initialContent={document.content}
+            placeholder="Start writing..."
             onContentChange={setContent}
           />
         </div>

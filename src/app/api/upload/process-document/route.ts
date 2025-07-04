@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { processDocument } from '@/lib/file-processing';
-import { createClient } from '@/lib/supabase';
+import { createServerClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,17 +26,17 @@ export async function POST(request: NextRequest) {
     // Process the document
     const processedDoc = await processDocument(file);
 
-    // Store in database
-    const supabase = createClient();
+    // Store in database as a document with type 'sample'
+    const supabase = createServerClient();
     const { data, error } = await supabase
-      .from('writing_samples')
+      .from('user_documents')
       .insert({
-        user_id: userId,
-        original_filename: processedDoc.filename,
-        processed_content: processedDoc.content,
-        file_type: processedDoc.fileType,
-        word_count: processedDoc.wordCount,
-        created_at: new Date().toISOString()
+        clerk_user_id: userId,
+        title: processedDoc.filename,
+        content: processedDoc.content,
+        document_type: 'sample',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();

@@ -1,6 +1,8 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui';
+import { DocumentGrid } from '@/components/dashboard/DocumentGrid';
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -23,24 +25,21 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" size="md">
-            Upload Samples
-          </Button>
-          <Button variant="primary" size="md">
-            New Document
-          </Button>
+          <Link href="/dashboard/upload-samples">
+            <Button variant="secondary" size="md">
+              Upload Samples
+            </Button>
+          </Link>
+          <Link href="/dashboard/new-document">
+            <Button variant="primary" size="md">
+              New Document
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* Placeholder content */}
-      <div className="bg-surface border border-border rounded-lg p-8 text-center">
-        <h3 className="text-lg font-medium text-text-primary mb-2">
-          Your documents will appear here
-        </h3>
-        <p className="text-text-secondary">
-          Start by uploading writing samples or creating your first document.
-        </p>
-      </div>
+      {/* Documents Grid */}
+      <DocumentGrid userId={userId} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 
 interface UploadedFile {
   file: File;
@@ -20,6 +21,7 @@ interface StyleAnalysisUploadProps {
 export function StyleAnalysisUpload({ onAnalysisComplete }: StyleAnalysisUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { addToast } = useToast();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadedFile[] = acceptedFiles
@@ -78,6 +80,7 @@ export function StyleAnalysisUpload({ onAnalysisComplete }: StyleAnalysisUploadP
             : f
         )
       );
+      addToast(`Failed to process ${uploadedFile.file.name}`, 'error');
     }
   };
 
@@ -85,7 +88,7 @@ export function StyleAnalysisUpload({ onAnalysisComplete }: StyleAnalysisUploadP
     const completedFiles = uploadedFiles.filter(f => f.status === 'completed' && f.extractedText);
     
     if (completedFiles.length < 2) {
-      alert('Please upload at least 2 documents for style analysis');
+      addToast('Please upload at least 2 documents for style analysis', 'warning');
       return;
     }
 
@@ -110,9 +113,10 @@ export function StyleAnalysisUpload({ onAnalysisComplete }: StyleAnalysisUploadP
       }
 
       const styleProfile = await response.json();
+      addToast('Writing style analysis completed successfully!', 'success');
       onAnalysisComplete?.(styleProfile);
     } catch {
-      alert('Failed to analyze writing style. Please try again.');
+      addToast('Failed to analyze writing style. Please try again.', 'error');
     } finally {
       setIsAnalyzing(false);
     }

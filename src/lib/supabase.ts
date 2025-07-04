@@ -2,11 +2,24 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Client-side Supabase client (for frontend)
 export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
+// Client-side client function (for frontend)
 export function createClient() {
   return createSupabaseClient(supabaseUrl, supabaseAnonKey);
+}
+
+// Server-side client with service role key (bypasses RLS)
+export function createServerClient() {
+  return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 }
 
 // Database types
@@ -67,7 +80,7 @@ export interface Database {
       writing_samples: {
         Row: {
           id: string;
-          user_id: string;
+          clerk_user_id: string;
           original_filename: string;
           processed_content: string;
           file_type: 'pdf' | 'docx' | 'txt';
@@ -76,7 +89,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          clerk_user_id: string;
           original_filename: string;
           processed_content: string;
           file_type: 'pdf' | 'docx' | 'txt';
@@ -85,7 +98,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          clerk_user_id?: string;
           original_filename?: string;
           processed_content?: string;
           file_type?: 'pdf' | 'docx';

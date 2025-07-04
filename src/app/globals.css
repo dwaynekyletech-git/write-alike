@@ -138,9 +138,9 @@ body {
 [contenteditable="true"] {
   direction: ltr;
   text-align: left;
-  caret-color: #000;
   cursor: text;
 }
+
 
 /* Smooth transitions */
 * {

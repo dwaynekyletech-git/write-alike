@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase';
+import { createServerClient } from '@/lib/supabase';
 
 // Schema for the style analysis response
 const styleAnalysisSchema = z.object({
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Store the style profile in database
-    const supabase = createClient();
+    const supabase = createServerClient();
     const { error } = await supabase
       .from('user_profiles')
       .upsert({
